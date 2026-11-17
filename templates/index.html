@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        .header h1 { font-size: 36px; font-weight: 700; letter-spacing: 1px; }
+        .header p  { font-size: 14px; opacity: 0.85; margin-top: 6px; }
+
+        /* Total Card */
+        .total-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px 30px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .total-card .label  { font-size: 14px; color: #888; font-weight: 500; }
+        .total-card .amount { font-size: 32px; font-weight: 700; color: #667eea; }
+        .total-card .icon   { font-size: 48px; }
+
+        /* Category Cards */
+        .category-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .cat-card { background: white; border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .cat-card .cat-icon   { font-size: 24px; }
+        .cat-card .cat-name   { font-size: 12px; color: #888; margin-top: 4px; }
+        .cat-card .cat-amount { font-size: 16px; font-weight: 600; color: #333; }
+
+        /* ── AI Analyzer Card ── */
+        .ai-card {
+            background: white;
+            border-radius: 16px;
+            padding: 28px 30px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .ai-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .ai-card-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        .ai-tag {
+            background: #f0ebff;
+            color: #764ba2;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        .ai-desc {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 18px;
+        }
+        .ai-btn {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .ai-btn:hover    { opacity: 0.88; }
+        .ai-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* AI Output */
+        #ai-output {
+            display: none;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+        #ai-output.visible { display: block; }
+
+        .ai-thinking {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #999;
+            font-size: 14px;
+        }
+        .dots { display: flex; gap: 4px; }
+        .dot  {
+            width: 7px; height: 7px;
+            background: #764ba2;
+            border-radius: 50%;
+            animation: bounce 1.2s infinite;
+        }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
+            30%            { transform: translateY(-6px); opacity: 1; }
+        }
+
+        .ai-result { font-size: 14px; line-height: 1.8; color: #333; }
+        .ai-result h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #667eea;
+            margin: 16px 0 6px;
+        }
+        .ai-result h3:first-child { margin-top: 0; }
+        .ai-result ul  { list-style: none; padding: 0; }
+        .ai-result li  { padding: 4px 0 4px 18px; position: relative; color: #555; }
+        .ai-result li::before { content: '→'; position: absolute; left: 0; color: #764ba2; }
+        .ai-result p   { color: #555; margin-bottom: 6px; }
+        .ai-result strong { color: #333; }
+
+        /* Form */
+        .form-card {
+            background: white;
+            border-radius: 16px;
+            padding: 28px 30px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .form-card h2 { font-size: 18px; font-weight: 600; color: #333; margin-bottom: 20px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label {
+            font-size: 12px; font-weight: 500; color: #888;
+            margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .form-group input,
+        .form-group select {
+            padding: 12px 14px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.3s;
+            outline: none;
+        }
+        .form-group input:focus,
+        .form-group select:focus { border-color: #667eea; }
+        .submit-btn {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white; border: none; border-radius: 10px;
+            font-size: 15px; font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer; margin-top: 16px; transition: opacity 0.3s;
+        }
+        .submit-btn:hover { opacity: 0.9; }
+
+        /* Table */
+        .table-card {
+            background: white; border-radius: 16px;
+            padding: 28px 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .table-card h2 { font-size: 18px; font-weight: 600; color: #333; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            font-size: 12px; font-weight: 600; color: #888;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            padding: 10px 14px; text-align: left; border-bottom: 2px solid #f0f0f0;
+        }
+        td { padding: 14px; font-size: 14px; color: #333; border-bottom: 1px solid #f5f5f5; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafafa; }
+
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        .badge-food     { background: #fff3e0; color: #f57c00; }
+        .badge-travel   { background: #e3f2fd; color: #1976d2; }
+        .badge-shopping { background: #fce4ec; color: #c2185b; }
+        .badge-bills    { background: #e8f5e9; color: #388e3c; }
+        .badge-other    { background: #f3e5f5; color: #7b1fa2; }
+
+        .delete-btn {
+            background: #fff0f0; color: #e74c3c; border: none;
+            padding: 6px 14px; border-radius: 8px; font-size: 13px;
+            font-family: 'Poppins', sans-serif; cursor: pointer;
+            text-decoration: none; font-weight: 500; transition: background 0.2s;
+        }
+        .delete-btn:hover { background: #ffe0e0; }
+        .no-expenses { text-align: center; padding: 40px; color: #aaa; font-size: 15px; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <h1>💰 Expense Tracker</h1>
+        <p>Track your daily spending easily</p>
+    </div>
+
+    <!-- Total Card -->
+    <div class="total-card">
+        <div>
+            <div class="label">Total Spent</div>
+            <div class="amount">₹ {{ expenses | sum(attribute='amount') | round(2) }}</div>
+        </div>
+        <div class="icon">💳</div>
+    </div>
+
+    <!-- Category Summary -->
+    <div class="category-cards">
+        <div class="cat-card">
+            <div class="cat-icon">🍔</div>
+            <div class="cat-name">Food</div>
+            <div class="cat-amount">₹ {{ expenses | selectattr('category', 'equalto', 'Food') | sum(attribute='amount') | round(2) }}</div>
+        </div>
+        <div class="cat-card">
+            <div class="cat-icon">🚌</div>
+            <div class="cat-name">Travel</div>
+            <div class="cat-amount">₹ {{ expenses | selectattr('category', 'equalto', 'Travel') | sum(attribute='amount') | round(2) }}</div>
+        </div>
+        <div class="cat-card">
+            <div class="cat-icon">🛍️</div>
+            <div class="cat-name">Shopping</div>
+            <div class="cat-amount">₹ {{ expenses | selectattr('category', 'equalto', 'Shopping') | sum(attribute='amount') | round(2) }}</div>
+        </div>
+        <div class="cat-card">
+            <div class="cat-icon">💡</div>
+            <div class="cat-name">Bills</div>
+            <div class="cat-amount">₹ {{ expenses | selectattr('category', 'equalto', 'Bills') | sum(attribute='amount') | round(2) }}</div>
+        </div>
+    </div>
+
+    <!-- AI Analyzer -->
+    <div class="ai-card">
+        <div class="ai-card-header">
+            <h2>🤖 AI Spending Analyzer</h2>
+            <span class="ai-tag">✦ Groq AI</span>
+        </div>
+        <p class="ai-desc">Analyze your expenses, spot overspending, and get a personalized budget plan.</p>
+        <button class="ai-btn" id="analyze-btn" onclick="runAnalysis()">Analyze My Spending →</button>
+
+        <div id="ai-output">
+            <div class="ai-thinking" id="ai-thinking">
+                <div class="dots">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+                <span>Analyzing your spending patterns…</span>
+            </div>
+            <div class="ai-result" id="ai-result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Add Expense Form -->
+    <div class="form-card">
+        <h2>➕ Add New Expense</h2>
+        <form action="/add" method="POST">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Expense Name</label>
+                    <input type="text" name="title" placeholder="e.g. Lunch" required>
+                </div>
+                <div class="form-group">
+                    <label>Amount (₹)</label>
+                    <input type="number" name="amount" placeholder="e.g. 150" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select name="category">
+                        <option value="Food">🍔 Food</option>
+                        <option value="Travel">🚌 Travel</option>
+                        <option value="Shopping">🛍️ Shopping</option>
+                        <option value="Bills">💡 Bills</option>
+                        <option value="Other">📦 Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" name="date" required>
+                </div>
+            </div>
+            <button type="submit" class="submit-btn">Add Expense</button>
+        </form>
+    </div>
+
+    <!-- Expenses Table -->
+    <div class="table-card">
+        <h2>📋 All Expenses</h2>
+        {% if expenses %}
+        <table>
+            <tr>
+                <th>Title</th><th>Amount</th><th>Category</th><th>Date</th><th>Action</th>
+            </tr>
+            {% for expense in expenses %}
+            <tr>
+                <td><strong>{{ expense['title'] }}</strong></td>
+                <td><strong>₹ {{ expense['amount'] }}</strong></td>
+                <td>
+                    <span class="badge badge-{{ expense['category'] | lower }}">
+                        {{ expense['category'] }}
+                    </span>
+                </td>
+                <td>{{ expense['date'] }}</td>
+                <td><a class="delete-btn" href="/delete/{{ expense['id'] }}">Delete</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <div class="no-expenses">No expenses yet. Add your first one above! 👆</div>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+async function runAnalysis() {
+    const btn      = document.getElementById('analyze-btn');
+    const output   = document.getElementById('ai-output');
+    const thinking = document.getElementById('ai-thinking');
+    const result   = document.getElementById('ai-result');
+
+    btn.disabled     = true;
+    btn.textContent  = 'Analyzing…';
+    output.classList.add('visible');
+    thinking.style.display = 'flex';
+    result.style.display   = 'none';
+
+    try {
+        const res  = await fetch('/analyze-ai', { method: 'POST' });
+        const data = await res.json();
+        thinking.style.display = 'none';
+        result.style.display   = 'block';
+        result.innerHTML = formatAnalysis(data.analysis);
+    } catch (e) {
+        thinking.style.display = 'none';
+        result.style.display   = 'block';
+        result.innerHTML = '<p style="color:#e74c3c;">⚠️ Could not reach the server. Is Flask running?</p>';
+    }
+
+    btn.disabled    = false;
+    btn.textContent = 'Re-analyze →';
+}
+
+function formatAnalysis(text) {
+    return text
+        .replace(/^###\s*(.+)$/gm, '<h3>$1</h3>')
+        .replace(/^##\s*(.+)$/gm,  '<h3>$1</h3>')
+        .replace(/^#\s*(.+)$/gm,   '<h3>$1</h3>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/^[-•]\s+(.+)$/gm,'<li>$1</li>')
+        .replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>')
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/^(?!<[hup]|$)(.+)$/gm, '<p>$1</p>');
+}
+</script>
+</body>
+</html>
